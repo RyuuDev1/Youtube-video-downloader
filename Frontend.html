@@ -76,7 +76,7 @@
         async function startDownload(resolution) {
             const url = document.getElementById('videoUrl').value;
             try {
-                const response = await fetch('http://localhost:8080/download', {
+                const response = await fetch('https://youtube-video-downloader-plum-pi.vercel.app/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url, quality: resolution })
