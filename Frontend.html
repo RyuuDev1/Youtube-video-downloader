@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YT Video Downloader</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Same CSS as previous version */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: white; }
+        .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        header { text-align: center; margin-bottom: 3rem; }
+        .logo { font-size: 2.5rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; gap: 1rem; }
+        .input-section { background: rgba(255, 255, 255, 0.1); padding: 2rem; border-radius: 15px; backdrop-filter: blur(10px); margin-bottom: 2rem; }
+        .input-group { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        input[type="text"] { flex: 1; padding: 1rem; border: none; border-radius: 8px; background: rgba(255, 255, 255, 0.9); font-size: 1rem; }
+        button { padding: 1rem 2rem; border: none; border-radius: 8px; background: #4a5568; color: white; cursor: pointer; transition: all 0.3s ease; }
+        button:hover { background: #2d3748; transform: translateY(-2px); }
+        .quality-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; margin-top: 2rem; }
+        .quality-btn { background: rgba(255, 255, 255, 0.1); padding: 1rem; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.3s ease; }
+        .quality-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        footer { text-align: center; margin-top: 3rem; opacity: 0.8; }
+        @media (max-width: 768px) { .input-group { flex-direction: column; } button { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fab fa-youtube"></i>
+                <h1>YT Downloader</h1>
+            </div>
+            <p>Download YouTube videos & shorts in multiple resolutions</p>
+        </header>
+
+        <div class="input-section">
+            <div class="input-group">
+                <input type="text" id="videoUrl" placeholder="Paste YouTube URL here...">
+                <button onclick="fetchVideoInfo()"><i class="fas fa-download"></i> Analyze</button>
+            </div>
+            
+            <div class="quality-options" id="qualityOptions">
+                <!-- Quality options will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <footer>
+            <p>Disclaimer: This tool is for educational purposes only. Respect content creators' rights.</p>
+        </footer>
+    </div>
+
+    <script>
+        const resolutions = ['144', '240', '360', '480', '720', '1080'];
+        
+        async function fetchVideoInfo() {
+            const url = document.getElementById('videoUrl').value;
+            if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+                alert('Please enter a valid YouTube URL');
+                return;
+            }
+
+            showQualityOptions();
+        }
+
+        function showQualityOptions() {
+            const container = document.getElementById('qualityOptions');
+            container.innerHTML = resolutions.map(res => `
+                <div class="quality-btn" onclick="startDownload('${res}')">
+                    ${res}p<br>
+                    <small>mp4</small>
+                </div>
+            `).join('');
+        }
+
+        async function startDownload(resolution) {
+            const url = document.getElementById('videoUrl').value;
+            try {
+                const response = await fetch('http://localhost:8080/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, quality: resolution })
+                });
+
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `video-${resolution}p.mp4`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(downloadUrl);
+                document.body.removeChild(a);
+            } catch (error) {
+                alert('Download failed: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
